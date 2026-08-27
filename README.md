@@ -93,7 +93,7 @@ Dois avisos honestos sobre o plano gratuito:
 | Autenticação | Spring Security + JWT (jjwt) | stateless, sem sessão no servidor |
 | HTTP externo | `RestClient` (Spring 6.1) | nativo, sem dependência a mais |
 | Documentação | springdoc-openapi | Swagger UI para testar sem Postman |
-| Testes | JUnit 5, MockMvc, Mockito | 54 testes cobrindo rota, validação, papel e erro |
+| Testes | JUnit 5, MockMvc, Mockito | 55 testes cobrindo rota, validação, papel e erro |
 
 ---
 
@@ -223,7 +223,8 @@ Três casos de borda tratados:
   um "deu erro" que ninguém consegue diagnosticar. Para reduzir o consumo, cada
   nome consultado fica **em cache**: dez consultas à mesma pessoa gastam uma
   chamada, não dez. Se houver chave de API em `APP_NATIONALIZE_API_KEY`, ela vai
-  no cabeçalho e o limite sobe.
+  como parâmetro `apikey` na URL e o limite sobe — essa API ignora chave enviada
+  em cabeçalho, sem avisar, tratando a requisição como anônima.
 - **API externa fora do ar ou lenta** — timeout de 3s para conectar e 5s para ler.
   Estourou, responde `502` identificando o fornecedor, nunca um `500` genérico.
   Uma lentidão da nationalize.io não pode derrubar esta API junto.
@@ -263,7 +264,7 @@ mvn test
 |---|---|
 | `CpfValidatorTest` | dígito verificador, máscara, CPFs de dígito repetido, nulo |
 | `NacionalidadeServiceTest` | conversão ISO → nome, código inexistente, código ausente |
-| `NationalizeClientTest` | 429 vira mensagem sobre limite diário, status do fornecedor preservado, falha de rede, envio da chave de API |
+| `NationalizeClientTest` | 429 vira mensagem sobre limite diário, status do fornecedor preservado, falha de rede, e a chave de API viajando como parâmetro de URL |
 | `PessoaApiIntegrationTest` | as 5 rotas de ponta a ponta, nos dois endereços: 401 sem token, 403 por perfil, 400 de validação, 404, 409, 502 e a conversão do ISO |
 
 A API externa é substituída por um dublê nos testes. Teste que depende de

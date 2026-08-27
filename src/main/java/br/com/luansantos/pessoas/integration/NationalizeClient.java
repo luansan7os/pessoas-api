@@ -54,18 +54,21 @@ public class NationalizeClient {
      */
     @Cacheable(cacheNames = "previsaoDeNacionalidade", key = "#nome.toLowerCase()")
     public NationalizeResponse preverPor(String nome) {
-        String uri = UriComponentsBuilder.fromUriString(baseUrl)
-                .queryParam("name", nome)
-                .build()
-                .toUriString();
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(baseUrl)
+                .queryParam("name", nome);
+
+        // A chave vai como parametro de URL, e nao como cabecalho: esta API so
+        // reconhece 'apikey' na query string -- cabecalho ela ignora em silencio,
+        // respondendo como se a requisicao fosse anonima.
+        if (temChave()) {
+            uriBuilder.queryParam("apikey", apiKey);
+        }
+
+        String uri = uriBuilder.build().toUriString();
+
         try {
             NationalizeResponse resposta = restClient.get()
                     .uri(uri)
-                    .headers(cabecalhos -> {
-                        if (apiKey != null && !apiKey.isBlank()) {
-                            cabecalhos.set("X-Api-Key", apiKey);
-                        }
-                    })
                     .retrieve()
                     .body(NationalizeResponse.class);
 
@@ -88,14 +91,21 @@ public class NationalizeClient {
         }
     }
 
+    private boolean temChave() {
+        return apiKey != null && !apiKey.isBlank();
+    }
+
     private String mensagemPara(int status) {
         if (status == 429) {
-            return "O limite diario da API publica de nacionalidade foi atingido "
-                    + "(25 consultas por dia, contadas por IP). Ela volta a responder "
-                    + "quando a cota reiniciar, ou imediatamente com uma chave de API configurada.";
+            return temChave()
+                    ? "A cota da chave de API de nacionalidade foi esgotada."
+                    : "O limite diario da API publica de nacionalidade foi atingido "
+                            + "(25 consultas por dia, contadas por IP). Ela volta a responder "
+                            + "quando a cota reiniciar, ou imediatamente com uma chave de API configurada.";
         }
         if (status == 401 || status == 403) {
-            return "A API de previsao de nacionalidade recusou a credencial enviada.";
+            return "A API de previsao de nacionalidade recusou a chave configurada. "
+                    + "Confira o valor de APP_NATIONALIZE_API_KEY.";
         }
         return String.format(Locale.ROOT,
                 "O servico de previsao de nacionalidade retornou erro %d", status);

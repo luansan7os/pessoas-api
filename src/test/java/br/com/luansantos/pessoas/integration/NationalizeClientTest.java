@@ -13,8 +13,6 @@ import java.net.SocketTimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.headerDoesNotExist;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
@@ -100,11 +98,15 @@ class NationalizeClientTest {
                 .isNull();
     }
 
+    /**
+     * A chave desta API vai na query string, nao em cabecalho: mandada como
+     * cabecalho, ela e ignorada em silencio e a requisicao conta como anonima.
+     * Este teste existe para travar exatamente esse engano.
+     */
     @Test
-    @DisplayName("envia a chave de API no cabecalho quando ela esta configurada")
-    void enviaChaveQuandoConfigurada() {
-        servidor.expect(requestTo(URL_ESPERADA))
-                .andExpect(header("X-Api-Key", "chave-secreta"))
+    @DisplayName("manda a chave como parametro apikey na URL, nao como cabecalho")
+    void mandaChaveNaQueryString() {
+        servidor.expect(requestTo(BASE + "?name=nathaniel&apikey=chave-secreta"))
                 .andRespond(withSuccess("""
                         {"count":1,"name":"nathaniel","country":[]}
                         """, MediaType.APPLICATION_JSON));
@@ -115,10 +117,9 @@ class NationalizeClientTest {
     }
 
     @Test
-    @DisplayName("nao envia cabecalho de chave quando ela nao esta configurada")
-    void naoEnviaChaveQuandoAusente() {
+    @DisplayName("sem chave configurada, a URL nao carrega o parametro apikey")
+    void naoMandaChaveQuandoAusente() {
         servidor.expect(requestTo(URL_ESPERADA))
-                .andExpect(headerDoesNotExist("X-Api-Key"))
                 .andRespond(withSuccess("""
                         {"count":1,"name":"nathaniel","country":[]}
                         """, MediaType.APPLICATION_JSON));
@@ -126,5 +127,18 @@ class NationalizeClientTest {
         clienteCom("").preverPor("nathaniel");
 
         servidor.verify();
+    }
+
+    @Test
+    @DisplayName("chave recusada (401) aponta a variavel de ambiente a conferir")
+    void chaveRecusada() {
+        servidor.expect(requestTo(BASE + "?name=nathaniel&apikey=errada"))
+                .andRespond(withStatus(HttpStatus.UNAUTHORIZED));
+
+        assertThatThrownBy(() -> clienteCom("errada").preverPor("nathaniel"))
+                .isInstanceOf(ServicoExternoIndisponivelException.class)
+                .hasMessageContaining("APP_NATIONALIZE_API_KEY")
+                .extracting("statusFornecedor")
+                .isEqualTo(401);
     }
 }
