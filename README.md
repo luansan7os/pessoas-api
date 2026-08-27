@@ -87,7 +87,7 @@ Dois avisos honestos sobre o plano gratuito:
 | Autenticação | Spring Security + JWT (jjwt) | stateless, sem sessão no servidor |
 | HTTP externo | `RestClient` (Spring 6.1) | nativo, sem dependência a mais |
 | Documentação | springdoc-openapi | Swagger UI para testar sem Postman |
-| Testes | JUnit 5, MockMvc, Mockito | 48 testes cobrindo rota, validação, papel e erro |
+| Testes | JUnit 5, MockMvc, Mockito | 54 testes cobrindo rota, validação, papel e erro |
 
 ---
 
@@ -206,10 +206,18 @@ esconder o dado bruto de quem consome a API não ajuda ninguém.
 }
 ```
 
-Dois casos de borda tratados:
+Três casos de borda tratados:
 
 - **nome sem previsão** — a API devolve `country: []`. Isso não é erro, é ausência
   de dado: responde `200` com `nacionalidade: null`.
+- **limite diário estourado** — a nationalize.io libera **25 consultas por dia,
+  contadas por IP** (cabeçalho `x-rate-limit-limit`). Em hospedagem com IP
+  compartilhado, a cota pode chegar já esgotada por outro inquilino. A resposta
+  `502` diz isso com todas as letras e traz `statusFornecedor: 429` — em vez de
+  um "deu erro" que ninguém consegue diagnosticar. Para reduzir o consumo, cada
+  nome consultado fica **em cache**: dez consultas à mesma pessoa gastam uma
+  chamada, não dez. Se houver chave de API em `APP_NATIONALIZE_API_KEY`, ela vai
+  no cabeçalho e o limite sobe.
 - **API externa fora do ar ou lenta** — timeout de 3s para conectar e 5s para ler.
   Estourou, responde `502` identificando o fornecedor, nunca um `500` genérico.
   Uma lentidão da nationalize.io não pode derrubar esta API junto.
@@ -249,6 +257,7 @@ mvn test
 |---|---|
 | `CpfValidatorTest` | dígito verificador, máscara, CPFs de dígito repetido, nulo |
 | `NacionalidadeServiceTest` | conversão ISO → nome, código inexistente, código ausente |
+| `NationalizeClientTest` | 429 vira mensagem sobre limite diário, status do fornecedor preservado, falha de rede, envio da chave de API |
 | `PessoaApiIntegrationTest` | as 5 rotas de ponta a ponta, nos dois endereços: 401 sem token, 403 por perfil, 400 de validação, 404, 409, 502 e a conversão do ISO |
 
 A API externa é substituída por um dublê nos testes. Teste que depende de
@@ -304,5 +313,6 @@ O que ficou de fora de propósito, por ser prova e não sistema em produção:
   servidor. Sob LGPD, o certo seria expor um id opaco para fora e manter o CPF
   como chave interna. Mantive o CPF na URL porque o enunciado pede um parâmetro
   identificador da pessoa e ele é o que permite a validação mais rica.
-- **Cache** — a previsão de nacionalidade por nome muda pouco. Um cache de curta
-  duração cortaria a maior parte das chamadas externas.
+- **Cache distribuído** — hoje o cache da previsão é um mapa em memória, que morre
+  com a aplicação e não é compartilhado entre instâncias. Com mais de uma
+  instância no ar, viraria Redis — trocando uma classe e nada mais.

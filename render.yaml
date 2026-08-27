@@ -27,3 +27,10 @@ services:
         sync: false
       - key: APP_USER_SENHA
         sync: false
+
+      # Opcional. A API publica de nacionalidade libera 25 consultas por dia por
+      # IP, e aqui o IP de saida e compartilhado com outros clientes da
+      # hospedagem -- a cota pode chegar ja esgotada. Com chave, o limite sobe.
+      # Sem ela o sistema funciona igual: o cache segura a maior parte.
+      - key: APP_NATIONALIZE_API_KEY
+        sync: false

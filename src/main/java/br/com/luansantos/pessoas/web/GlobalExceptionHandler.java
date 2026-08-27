@@ -99,12 +99,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(criar(HttpStatus.CONFLICT, "Documento ja registrado", ex.getMessage()));
     }
 
-    /** Falha do fornecedor externo nao pode virar 500 nosso. */
+    /**
+     * Falha do fornecedor externo nao pode virar 500 nosso.
+     *
+     * O status que ele devolveu vai junto na resposta: sem isso, limite de uso
+     * estourado e servidor fora do ar viram a mesma mensagem, e quem consome
+     * nao sabe se espera, se corrige ou se avisa alguem.
+     */
     @ExceptionHandler(ServicoExternoIndisponivelException.class)
     public ResponseEntity<ProblemDetail> tratarServicoExterno(ServicoExternoIndisponivelException ex) {
-        ProblemDetail problema = criar(HttpStatus.BAD_GATEWAY,
-                "Servico externo indisponivel", ex.getMessage());
+        String titulo = ex.isLimiteDeUsoExcedido()
+                ? "Limite da API externa atingido"
+                : "Servico externo indisponivel";
+
+        ProblemDetail problema = criar(HttpStatus.BAD_GATEWAY, titulo, ex.getMessage());
         problema.setProperty("fornecedor", "api.nationalize.io");
+
+        if (ex.getStatusFornecedor() != null) {
+            problema.setProperty("statusFornecedor", ex.getStatusFornecedor());
+        }
 
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(problema);
     }

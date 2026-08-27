@@ -460,7 +460,7 @@
       </div>
       <div>
         <dt>Testes</dt>
-        <dd>48 automatizados</dd>
+        <dd>54 automatizados</dd>
       </div>
     </dl>
   </div>
@@ -801,6 +801,22 @@
       "o fornecedor não respondeu" e segue viva. Sem esse prazo, uma lentidão deles
       viraria uma lentidão nossa.
     </p>
+
+    <h3>O serviço externo é gratuito, e isso tem preço</h3>
+    <p class="guia">
+      A <code>nationalize.io</code> libera <strong>25 consultas por dia, contadas por
+      endereço de internet</strong> — não por usuário, nem por sistema. Quem hospeda em
+      servidor compartilhado divide esse endereço com outros inquilinos, então a cota
+      pode chegar já gasta por gente que não tem nada a ver com este projeto.
+    </p>
+    <p class="guia">
+      Duas defesas contra isso. A primeira: cada nome consultado <strong>fica
+      guardado</strong>. Clicar dez vezes na mesma pessoa custa uma consulta, não dez.
+      A segunda: quando a cota estoura mesmo assim, a resposta diz exatamente isso —
+      "o limite diário foi atingido" — com o código que o fornecedor devolveu. Antes
+      disso, qualquer problema externo virava o mesmo "deu erro" e ninguém descobria a
+      causa sem abrir registro de servidor.
+    </p>
   </div>
 </section>
 
@@ -970,7 +986,7 @@
     <p class="rotulo">Verificação</p>
     <h2>O que foi testado</h2>
     <p>
-      São <strong>48 testes automatizados</strong> que rodam a cada build. Eles não
+      São <strong>54 testes automatizados</strong> que rodam a cada build. Eles não
       testam se o código compila — testam se ele se comporta:
     </p>
 
@@ -981,6 +997,7 @@
       <li><span class="marca">✓</span><span>Cadastro repetido é barrado.</span></li>
       <li><span class="marca">✓</span><span>Código de país vira nome de país corretamente.</span></li>
       <li><span class="marca">✓</span><span>Serviço externo fora do ar vira aviso de fornecedor, não erro nosso.</span></li>
+      <li><span class="marca">✓</span><span>Limite diário da API externa estourado vira mensagem que explica o que houve, com o código que ela devolveu.</span></li>
     </ul>
 
     <p style="margin-top: 2rem;">
@@ -1027,8 +1044,9 @@
       </li>
       <li>
         <span class="marca">4</span>
-        <span><strong>Memória de consulta.</strong> A previsão de um mesmo nome muda pouco. Guardar
-        a resposta por algumas horas cortaria a maioria das idas ao serviço externo.</span>
+        <span><strong>Memória de consulta compartilhada.</strong> A previsão de cada nome já fica
+        guardada, mas dentro da própria aplicação: some quando ela reinicia e não é dividida
+        entre cópias. Com mais de uma cópia no ar, isso viraria um serviço de cache à parte.</span>
       </li>
     </ul>
 

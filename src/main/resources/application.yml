@@ -61,6 +61,10 @@ app:
     base-url: ${APP_NATIONALIZE_URL:https://api.nationalize.io}
     timeout-conexao-ms: 3000
     timeout-leitura-ms: 5000
+    # Opcional. Sem chave, a API publica libera 25 consultas por dia por IP --
+    # o que em hospedagem de IP compartilhado pode chegar ja esgotado.
+    # Com chave, o limite sobe. O cache existe justamente para nao depender disso.
+    api-key: ${APP_NATIONALIZE_API_KEY:}
 
 logging:
   level:
