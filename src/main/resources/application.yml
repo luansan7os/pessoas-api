@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: pessoas-api
+
+  # H2 em memoria: quem for avaliar roda o projeto sem instalar banco nenhum.
+  # Trocar para Postgres e mudar estas 4 linhas -- o resto do codigo nao sabe
+  # qual banco esta embaixo.
+  datasource:
+    url: jdbc:h2:mem:pessoas;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true   # o data.sql roda depois do schema
+    open-in-view: false                     # nada de lazy loading vazando pro controller
+    properties:
+      hibernate:
+        format_sql: true
+
+  sql:
+    init:
+      mode: always
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+server:
+  port: 8080
+  error:
+    include-message: never   # o formato de erro quem define e o GlobalExceptionHandler
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+
+app:
+  jwt:
+    # Em producao isso vem de variavel de ambiente. O valor abaixo e so o
+    # fallback para o projeto subir com um comando na avaliacao.
+    secret: ${APP_JWT_SECRET:pessoas-api-segredo-de-avaliacao-com-mais-de-256-bits-1234567890}
+    validade-segundos: 3600
+    emissor: pessoas-api
+
+  usuarios:
+    admin:
+      usuario: ${APP_ADMIN_USUARIO:admin}
+      senha: ${APP_ADMIN_SENHA:admin123}
+    padrao:
+      usuario: ${APP_USER_USUARIO:user}
+      senha: ${APP_USER_SENHA:user123}
+
+  nationalize:
+    base-url: ${APP_NATIONALIZE_URL:https://api.nationalize.io}
+    timeout-conexao-ms: 3000
+    timeout-leitura-ms: 5000
+
+logging:
+  level:
+    br.com.luansantos.pessoas: INFO

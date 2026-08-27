@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Pessoas — API</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topo">
+  <div class="container topo__interno">
+    <div>
+      <h1 class="topo__titulo">Cadastro de Pessoas</h1>
+      <p class="topo__sub">Interface de consumo da API · previsão de nacionalidade por nome</p>
+    </div>
+    <div class="sessao" id="sessao" hidden>
+      <span class="sessao__usuario" id="sessaoUsuario"></span>
+      <span class="tag" id="sessaoPerfil"></span>
+      <button class="btn btn--fantasma" id="btnSair" type="button">sair</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===== TELA 1: LOGIN ===== -->
+  <div class="tela-login" id="telaLogin">
+    <div class="login">
+
+      <div class="login__cartao">
+        <h2 class="login__titulo">Entrar</h2>
+        <p class="login__sub">A API exige token em toda rota. Autentique-se para continuar.</p>
+
+        <form class="form" id="formLogin" autocomplete="off">
+          <div class="campo">
+            <label for="usuario">Usuário</label>
+            <input type="text" id="usuario" name="usuario" autocomplete="username" required>
+          </div>
+          <div class="campo">
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" name="senha" autocomplete="current-password" required>
+          </div>
+
+          <span class="login__erro" id="loginErro"></span>
+
+          <button class="btn btn--primario btn--largo" type="submit" id="btnEntrar">Entrar</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== TELA 2: APLICAÇÃO ===== -->
+  <div class="container conteudo" id="telaApp" hidden>
+
+    <div class="colunas">
+
+      <section class="cartao">
+        <div class="cartao__cabecalho">
+          <h2>Registrar pessoa</h2>
+          <p><code>POST /registrarName</code></p>
+        </div>
+        <form class="form" id="formCadastro" autocomplete="off">
+          <div class="campo">
+            <label for="documento">CPF</label>
+            <input type="text" id="documento" name="documento" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" required>
+            <span class="campo__erro" data-erro="documento"></span>
+          </div>
+          <div class="campo">
+            <label for="nome">Nome</label>
+            <input type="text" id="nome" name="nome" placeholder="Nathaniel" required>
+            <span class="campo__erro" data-erro="nome"></span>
+          </div>
+          <div class="campo">
+            <label for="sobrenome">Sobrenome</label>
+            <input type="text" id="sobrenome" name="sobrenome" placeholder="Barbosa" required>
+            <span class="campo__erro" data-erro="sobrenome"></span>
+          </div>
+          <div class="campo">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="email" placeholder="nome@exemplo.com.br" required>
+            <span class="campo__erro" data-erro="email"></span>
+          </div>
+          <button class="btn btn--primario" type="submit">Registrar</button>
+        </form>
+      </section>
+
+      <section class="cartao">
+        <div class="cartao__cabecalho">
+          <h2>Prever nacionalidade</h2>
+          <p><code>GET /findNacionalityByPerson/{cpf}</code> — o código ISO da API externa vira nome de país.</p>
+        </div>
+
+        <div class="vazio" id="nacionalidadeVazia">
+          <span>Selecione <strong>prever</strong> na lista abaixo para consultar a nacionalidade de alguém.</span>
+        </div>
+
+        <div class="previsao" id="previsao" hidden>
+          <p class="previsao__rotulo">Nacionalidade mais provável de <strong id="previsaoNome"></strong></p>
+          <p class="previsao__pais" id="previsaoPais"></p>
+          <div class="previsao__barra"><span id="previsaoBarra"></span></div>
+          <p class="previsao__meta">
+            <span id="previsaoProbabilidade"></span>
+            <span class="tag tag--mono" id="previsaoIso"></span>
+          </p>
+          <div id="previsaoAlternativas"></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="cartao">
+      <div class="cartao__cabecalho cartao__cabecalho--acoes">
+        <div>
+          <h2>Pessoas registradas</h2>
+          <p><code>GET /list</code> · <code>GET /list/{cpf}</code> · <code>DELETE /list/{cpf}</code></p>
+        </div>
+        <div class="busca">
+          <input type="search" id="filtro" placeholder="filtrar por nome (mín. 2 letras)">
+          <button class="btn" id="btnAtualizar" type="button">Atualizar</button>
+        </div>
+      </div>
+
+      <div class="tabela-area">
+        <table class="tabela">
+          <thead>
+          <tr>
+            <th>CPF</th>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th class="col-acoes">Ações</th>
+          </tr>
+          </thead>
+          <tbody id="corpoTabela"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="rodape">
+  <a href="/explicacao">Como funciona</a>
+  <span>·</span>
+  <a href="/swagger-ui.html" target="_blank" rel="noopener">Swagger UI</a>
+  <span>·</span>
+  <a href="/h2-console" target="_blank" rel="noopener">Console H2</a>
+  <span>·</span>
+  <span>Luan Santos</span>
+</footer>
+
+<div class="aviso" id="aviso" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

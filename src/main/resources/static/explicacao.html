@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Como a prova tÃ©cnica foi construÃ­da: as telas, as decisÃµes e o porquÃª de cada uma."><title>Cadastro de Pessoas por dentro</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --papel:      #F4F5F8;
+    --superficie: #FFFFFF;
+    --tinta:      #12151F;
+    --tinta-media:#565C6E;
+    --tinta-fraca:#878DA0;
+    --linha:      #DFE3EB;
+    --linha-forte:#C6CCD9;
+    --carimbo:    #2A3A78;
+    --carimbo-bg: #ECEFF9;
+    --ok:         #1B6E4A;
+    --ok-bg:      #E8F4ED;
+    --atencao:    #8A6100;
+    --atencao-bg: #FAF1DC;
+    --erro:       #B0271F;
+    --erro-bg:    #FBEBE9;
+
+    --largura-texto: 42rem;
+    --largura-ampla: 64rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --papel:      #0E1017;
+      --superficie: #171A24;
+      --tinta:      #E8EAF0;
+      --tinta-media:#9AA1B4;
+      --tinta-fraca:#6E7589;
+      --linha:      #262B38;
+      --linha-forte:#39404F;
+      --carimbo:    #93A2EE;
+      --carimbo-bg: #1B2136;
+      --ok:         #59C393;
+      --ok-bg:      #14261E;
+      --atencao:    #DDAA4E;
+      --atencao-bg: #2A2113;
+      --erro:       #EC8177;
+      --erro-bg:    #2B1715;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --papel:      #0E1017;
+    --superficie: #171A24;
+    --tinta:      #E8EAF0;
+    --tinta-media:#9AA1B4;
+    --tinta-fraca:#6E7589;
+    --linha:      #262B38;
+    --linha-forte:#39404F;
+    --carimbo:    #93A2EE;
+    --carimbo-bg: #1B2136;
+    --ok:         #59C393;
+    --ok-bg:      #14261E;
+    --atencao:    #DDAA4E;
+    --atencao-bg: #2A2113;
+    --erro:       #EC8177;
+    --erro-bg:    #2B1715;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .faixa { width: 100%; padding: 0 1.5rem; }
+
+  .texto { max-width: var(--largura-texto); margin: 0 auto; }
+  .amplo { max-width: var(--largura-ampla); margin: 0 auto; }
+
+  /* ---------- cabecalho ---------- */
+
+  .capa {
+    border-bottom: 1px solid var(--linha);
+    background: var(--superficie);
+    padding: 4.5rem 1.5rem 3rem;
+  }
+
+  .capa__marca {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--carimbo);
+    margin: 0 0 1.25rem;
+  }
+
+  .capa h1 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 1.25rem;
+    text-wrap: balance;
+  }
+
+  .capa__linha-fina {
+    font-size: 1.15rem;
+    color: var(--tinta-media);
+    margin: 0 0 2.5rem;
+    max-width: 34rem;
+  }
+
+  .ficha {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1.5rem 2rem;
+    border-top: 1px solid var(--linha);
+    padding-top: 1.75rem;
+  }
+
+  .ficha dt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--tinta-fraca);
+    margin-bottom: 0.4rem;
+  }
+
+  .ficha dd {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  /* ---------- secoes ---------- */
+
+  .secao { padding: 4rem 1.5rem; }
+  .secao + .secao { border-top: 1px solid var(--linha); }
+  .secao--destaque { background: var(--superficie); }
+
+  .rotulo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--carimbo);
+    margin: 0 0 0.75rem;
+  }
+
+  h2 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: clamp(1.7rem, 3.6vw, 2.3rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    margin: 0 0 1.5rem;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 2.5rem 0 0.75rem;
+  }
+
+  p { margin: 0 0 1.15rem; }
+  p:last-child { margin-bottom: 0; }
+
+  strong { font-weight: 600; }
+
+  a { color: var(--carimbo); text-decoration: underline; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--carimbo); outline-offset: 3px; border-radius: 2px; }
+
+  .guia { color: var(--tinta-media); }
+
+  code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.84em;
+    background: var(--carimbo-bg);
+    color: var(--carimbo);
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    word-break: break-word;
+  }
+
+  /* ---------- blocos de requisito ---------- */
+
+  .requisitos {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+
+  .requisito {
+    background: var(--superficie);
+    border: 1px solid var(--linha);
+    border-left: 3px solid var(--carimbo);
+    border-radius: 3px;
+    padding: 1.5rem 1.5rem 1.25rem;
+  }
+
+  .secao--destaque .requisito { background: var(--papel); }
+
+  .requisito__topo {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .requisito__numero {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--carimbo);
+    background: var(--carimbo-bg);
+    border-radius: 2px;
+    padding: 0.15rem 0.45rem;
+    flex-shrink: 0;
+  }
+
+  .requisito__titulo { font-weight: 600; font-size: 1rem; }
+
+  .requisito p { font-size: 0.95rem; color: var(--tinta-media); margin-bottom: 0; }
+
+  /* ---------- tabelas ---------- */
+
+  .rolagem { overflow-x: auto; margin: 2rem 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  th {
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tinta-fraca);
+    padding: 0 1rem 0.6rem 0;
+    border-bottom: 1px solid var(--linha-forte);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.85rem 1rem 0.85rem 0;
+    border-bottom: 1px solid var(--linha);
+    vertical-align: top;
+  }
+
+  th:last-child, td:last-child { padding-right: 0; }
+
+  /* ---------- figuras ---------- */
+
+  figure {
+    margin: 2.5rem 0;
+  }
+
+  figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--linha-forte);
+    border-radius: 3px;
+    background: var(--superficie);
+  }
+
+  figcaption {
+    font-size: 0.88rem;
+    color: var(--tinta-media);
+    margin-top: 0.85rem;
+    padding-left: 0.9rem;
+    border-left: 2px solid var(--linha-forte);
+  }
+
+  /* ---------- lista de leitura da tela ---------- */
+
+  .leitura {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0 0;
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .leitura li {
+    display: grid;
+    grid-template-columns: 1.6rem 1fr;
+    gap: 0.85rem;
+    align-items: start;
+    font-size: 0.95rem;
+  }
+
+  .leitura .marca {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--carimbo);
+    background: var(--carimbo-bg);
+    border-radius: 2px;
+    text-align: center;
+    padding: 0.2rem 0;
+    line-height: 1.2;
+  }
+
+  /* ---------- fluxo ---------- */
+
+  .fluxo {
+    display: grid;
+    gap: 0.75rem;
+    margin: 2rem 0;
+  }
+
+  .fluxo__linha {
+    display: flex;
+    align-items: stretch;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .caixa {
+    flex: 1 1 12rem;
+    background: var(--superficie);
+    border: 1px solid var(--linha-forte);
+    border-radius: 3px;
+    padding: 1rem 1.1rem;
+  }
+
+  .secao--destaque .caixa { background: var(--papel); }
+
+  .caixa__papel {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tinta-fraca);
+    margin-bottom: 0.3rem;
+  }
+
+  .caixa__nome { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
+  .caixa__nota { font-size: 0.85rem; color: var(--tinta-media); line-height: 1.45; }
+
+  .seta {
+    display: flex;
+    align-items: center;
+    color: var(--tinta-fraca);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .caixa--externa { border-style: dashed; }
+
+  /* ---------- destaque de pergunta ---------- */
+
+  .pergunta {
+    background: var(--carimbo-bg);
+    border: 1px solid var(--carimbo);
+    border-radius: 3px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .pergunta__titulo {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-style: italic;
+    line-height: 1.25;
+    margin: 0;
+    color: var(--tinta);
+    text-wrap: balance;
+  }
+
+  /* ---------- etiquetas de estado ---------- */
+
+  .etiqueta {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.15rem 0.45rem;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .etiqueta--ok      { background: var(--ok-bg);      color: var(--ok); }
+  .etiqueta--atencao { background: var(--atencao-bg); color: var(--atencao); }
+  .etiqueta--erro    { background: var(--erro-bg);    color: var(--erro); }
+
+  /* ---------- rodape ---------- */
+
+  .rodape {
+    border-top: 1px solid var(--linha);
+    background: var(--superficie);
+    padding: 3rem 1.5rem 4rem;
+    font-size: 0.9rem;
+    color: var(--tinta-media);
+  }
+
+  .rodape strong { color: var(--tinta); }
+
+  .comando {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    background: var(--papel);
+    border: 1px solid var(--linha);
+    border-radius: 3px;
+    padding: 0.9rem 1.1rem;
+    margin: 1rem 0 1.5rem;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--tinta);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+
+<header class="capa">
+  <div class="texto">
+    <p class="capa__marca">Prova técnica · Java</p>
+    <h1>Cadastro de Pessoas por dentro</h1>
+    <p class="capa__linha-fina">
+      O que a prova pediu, o que eu construí, como cada tela funciona e por que
+      tomei cada decisão. Escrito para ser lido por quem programa e por quem não programa.
+    </p>
+    <dl class="ficha">
+      <div>
+        <dt>Linguagem</dt>
+        <dd>Java 21 · Spring Boot 3</dd>
+      </div>
+      <div>
+        <dt>Banco</dt>
+        <dd>H2 em memória</dd>
+      </div>
+      <div>
+        <dt>Autenticação</dt>
+        <dd>Token JWT + perfis</dd>
+      </div>
+      <div>
+        <dt>Testes</dt>
+        <dd>41 automatizados</dd>
+      </div>
+    </dl>
+  </div>
+</header>
+
+<!-- ============ O QUE FOI PEDIDO ============ -->
+<section class="secao">
+  <div class="texto">
+    <p class="rotulo">Ponto de partida</p>
+    <h2>O que a prova pediu</h2>
+    <p>
+      O enunciado tem três exigências. Elas estão numeradas aqui porque estavam
+      numeradas na prova — a ordem é dela, não minha.
+    </p>
+
+    <div class="requisitos">
+      <div class="requisito">
+        <div class="requisito__topo">
+          <span class="requisito__numero">01</span>
+          <span class="requisito__titulo">Cinco endereços de API</span>
+        </div>
+        <p>
+          Cadastrar uma pessoa, listar todas, consultar uma, excluir uma, e prever a
+          nacionalidade dela consultando um serviço externo. Cada um precisa ter
+          pelo menos uma validação de dado.
+        </p>
+      </div>
+      <div class="requisito">
+        <div class="requisito__topo">
+          <span class="requisito__numero">02</span>
+          <span class="requisito__titulo">Autenticação</span>
+        </div>
+        <p>
+          Proteger pelo menos a operação mais crítica — ou todas. O método era livre:
+          usuário e senha, token, IP, o que eu escolhesse.
+        </p>
+      </div>
+      <div class="requisito">
+        <div class="requisito__topo">
+          <span class="requisito__numero">03</span>
+          <span class="requisito__titulo">Uma interface</span>
+        </div>
+        <p>
+          Uma tela, de preferência web, que consuma pelo menos um dos endereços acima.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRADUÇÃO ============ -->
+<section class="secao secao--destaque">
+  <div class="texto">
+    <p class="rotulo">Para quem não é da área</p>
+    <h2>Traduzindo os termos</h2>
+    <p>
+      Três palavras aparecem o tempo todo daqui pra frente. Elas são simples.
+    </p>
+
+    <h3>API</h3>
+    <p class="guia">
+      É a parte do sistema que não tem tela. Ela existe para outros programas
+      conversarem com ela. Pense num caixa de banco atrás de um guichê: você passa
+      um pedido pela abertura, ele responde. A tela bonita é só um cliente desse guichê
+      — poderia ser um aplicativo de celular, uma planilha, outro sistema.
+    </p>
+
+    <h3>Endpoint</h3>
+    <p class="guia">
+      Cada guichê específico. Um serve para cadastrar, outro para consultar, outro
+      para excluir. São os cinco "endereços" que a prova pediu.
+    </p>
+
+    <h3>Token</h3>
+    <p class="guia">
+      Um crachá temporário. Você mostra usuário e senha uma vez, o sistema te devolve
+      um crachá, e a partir daí você mostra o crachá em vez da senha. Ele vence sozinho
+      depois de um tempo — no caso, uma hora.
+    </p>
+  </div>
+</section>
+
+<!-- ============ O QUE FOI ENTREGUE ============ -->
+<section class="secao">
+  <div class="amplo">
+    <p class="rotulo">Resposta</p>
+    <h2>O que foi entregue</h2>
+    <p class="texto" style="max-width: var(--largura-texto); margin-left: 0;">
+      Os cinco endereços saíram com os nomes exatos que a prova escreveu. A coluna
+      da direita mostra a validação de cada um — era exigência do enunciado que cada
+      endereço tivesse a sua.
+    </p>
+
+    <div class="rolagem">
+      <table>
+        <thead>
+          <tr>
+            <th>Operação</th>
+            <th>Endereço</th>
+            <th>Precisa de crachá?</th>
+            <th>O que é conferido</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Entrar no sistema</td>
+            <td><code>POST /auth/login</code></td>
+            <td><span class="etiqueta etiqueta--ok">aberto</span></td>
+            <td>usuário e senha preenchidos</td>
+          </tr>
+          <tr>
+            <td>Cadastrar pessoa</td>
+            <td><code>POST /registrarName</code></td>
+            <td><span class="etiqueta etiqueta--atencao">crachá</span></td>
+            <td>CPF de verdade, nome e sobrenome só com letras, e-mail em formato válido, nada em branco</td>
+          </tr>
+          <tr>
+            <td>Listar pessoas</td>
+            <td><code>GET /list</code></td>
+            <td><span class="etiqueta etiqueta--atencao">crachá</span></td>
+            <td>filtro de busca com no mínimo 2 letras</td>
+          </tr>
+          <tr>
+            <td>Consultar uma pessoa</td>
+            <td><code>GET /list/{cpf}</code></td>
+            <td><span class="etiqueta etiqueta--atencao">crachá</span></td>
+            <td>CPF conferido antes de consultar o banco</td>
+          </tr>
+          <tr>
+            <td>Excluir uma pessoa</td>
+            <td><code>DELETE /list/{cpf}</code></td>
+            <td><span class="etiqueta etiqueta--erro">crachá de admin</span></td>
+            <td>mesma conferência de CPF, e só o perfil admin passa</td>
+          </tr>
+          <tr>
+            <td>Prever nacionalidade</td>
+            <td><code>GET /findNacionalityByPerson/{cpf}</code></td>
+            <td><span class="etiqueta etiqueta--atencao">crachá</span></td>
+            <td>CPF conferido, e o nome conferido antes de sair para o serviço externo</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AS TELAS ============ -->
+<section class="secao secao--destaque">
+  <div class="amplo">
+    <p class="rotulo">Requisito 03</p>
+    <h2>As telas, uma a uma</h2>
+    <p class="texto" style="margin-left: 0;">
+      São duas telas na mesma página: a de entrada e a do sistema. Quem decide qual
+      delas aparece é a existência de um crachá válido — não um menu, não um botão de
+      navegação. Isso importa, e explico o porquê logo abaixo.
+    </p>
+
+    <h3>Tela 1 — Entrada</h3>
+    <figure>
+      <img src="img/tela-1-login.png" alt="Tela de login: cabeçalho preto com o título Cadastro de Pessoas e, centralizado, um cartão branco com os campos usuário e senha e o botão Entrar.">
+      <figcaption>
+        Primeira coisa que aparece. Nada do sistema fica visível antes de entrar.
+      </figcaption>
+    </figure>
+    <ul class="leitura">
+      <li>
+        <span class="marca">1</span>
+        <span><strong>Nada vaza.</strong> Não há lista, nem cadastro, nem botão escondido atrás
+        de um menu. Quem não entrou não vê dado nenhum de pessoa.</span>
+      </li>
+      <li>
+        <span class="marca">2</span>
+        <span><strong>As credenciais não estão na tela.</strong> Elas vão na mensagem de entrega e
+        no arquivo de instruções do projeto. Usuário e senha impressos na tela de login é o
+        tipo de atalho que economiza um minuto e vira vício — não faço nem em demonstração.</span>
+      </li>
+      <li>
+        <span class="marca">3</span>
+        <span><strong>Dois perfis diferentes.</strong> O <code>admin</code> faz tudo. O <code>user</code>
+        faz tudo menos excluir. Isso é proposital e aparece na Tela 4.</span>
+      </li>
+    </ul>
+
+    <h3>Tela 2 — Quando a senha está errada</h3>
+    <figure>
+      <img src="img/tela-2-erro.png" alt="A mesma tela de login, agora com uma tarja vermelha clara acima do botão dizendo Usuario ou senha invalidos.">
+      <figcaption>
+        O erro aparece dentro do cartão, colado no formulário — não some sozinho e não
+        vira um alerta perdido no canto.
+      </figcaption>
+    </figure>
+    <ul class="leitura">
+      <li>
+        <span class="marca">1</span>
+        <span><strong>A mensagem é genérica de propósito.</strong> Ela nunca diz "esse usuário não
+        existe". Se dissesse, qualquer pessoa poderia descobrir quais usuários existem no
+        sistema testando nomes. É uma prática básica de segurança.</span>
+      </li>
+      <li>
+        <span class="marca">2</span>
+        <span><strong>Continua na tela de entrada.</strong> Errar a senha não move ninguém de lugar.</span>
+      </li>
+    </ul>
+
+    <h3>Tela 3 — O sistema, já autenticado</h3>
+    <figure>
+      <img src="img/tela-3-app.png" alt="Tela principal com três blocos: à esquerda o formulário Registrar pessoa, à direita o bloco Prever nacionalidade mostrando Japão com 46 por cento e uma lista de outras possibilidades, e embaixo a tabela Pessoas registradas com quatro linhas e os botões prever e excluir.">
+      <figcaption>
+        Três funções na mesma tela. No topo à direita: quem está logado, o perfil e a
+        saída.
+      </figcaption>
+    </figure>
+    <ul class="leitura">
+      <li>
+        <span class="marca">1</span>
+        <span><strong>Registrar pessoa.</strong> O CPF se formata sozinho enquanto se digita. Se
+        algum campo estiver errado, a mensagem aparece embaixo do campo que quebrou — e
+        essa mensagem vem do servidor, não é inventada pela tela. Servidor e tela contam a
+        mesma história.</span>
+      </li>
+      <li>
+        <span class="marca">2</span>
+        <span><strong>Prever nacionalidade.</strong> A barra preta é a probabilidade. O
+        <code>JP</code> à direita é o código que o serviço externo devolveu; "Japão" é a
+        tradução que eu faço. Abaixo, as outras possibilidades em ordem.</span>
+      </li>
+      <li>
+        <span class="marca">3</span>
+        <span><strong>Pessoas registradas.</strong> Cada linha tem "prever" e "excluir". O campo de
+        busca filtra por nome.</span>
+      </li>
+      <li>
+        <span class="marca">4</span>
+        <span><strong>Os rótulos cinzas</strong> — <code>POST /registrarName</code>,
+        <code>GET /list</code> — mostram qual endereço da API cada bloco está usando. Num
+        sistema para cliente final eu tiraria. Aqui eles existem para o avaliador ligar a
+        tela ao código sem precisar procurar.</span>
+      </li>
+    </ul>
+
+    <h3>Tela 4 — O mesmo sistema, com o perfil comum</h3>
+    <figure>
+      <img src="img/tela-4-user.png" alt="A mesma tela principal, agora com a etiqueta user no topo direito e todos os botões excluir da tabela em cinza claro, desabilitados.">
+      <figcaption>
+        Entrando como <code>user</code>: os botões de excluir ficam apagados e não
+        respondem ao clique.
+      </figcaption>
+    </figure>
+    <ul class="leitura">
+      <li>
+        <span class="marca">1</span>
+        <span><strong>A tela se adapta ao perfil.</strong> Ninguém precisa clicar para descobrir
+        que não pode.</span>
+      </li>
+      <li>
+        <span class="marca">2</span>
+        <span><strong>Mas o botão apagado não é a segurança.</strong> Ele é cortesia. Quem burlar a
+        tela e chamar a API direto leva um bloqueio do servidor do mesmo jeito. Este é o
+        ponto mais importante desta página inteira, e ele tem uma seção só para ele.</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ COMO FUNCIONA POR DENTRO ============ -->
+<section class="secao">
+  <div class="texto">
+    <p class="rotulo">Mecânica</p>
+    <h2>O caminho de um clique</h2>
+    <p>
+      Quando alguém clica em "prever" na tabela, quatro peças entram em ação. Nenhuma
+      delas confia na anterior.
+    </p>
+
+    <div class="fluxo">
+      <div class="fluxo__linha">
+        <div class="caixa">
+          <div class="caixa__papel">Passo 1</div>
+          <div class="caixa__nome">A tela</div>
+          <div class="caixa__nota">Manda o pedido junto com o crachá.</div>
+        </div>
+        <div class="seta" aria-hidden="true">→</div>
+        <div class="caixa">
+          <div class="caixa__papel">Passo 2</div>
+          <div class="caixa__nome">A API em Java</div>
+          <div class="caixa__nota">Confere o crachá, confere o CPF, e só então trabalha.</div>
+        </div>
+      </div>
+      <div class="fluxo__linha">
+        <div class="caixa">
+          <div class="caixa__papel">Passo 3a</div>
+          <div class="caixa__nome">O banco de dados</div>
+          <div class="caixa__nota">Devolve a pessoa daquele CPF. Se não existir, a resposta para aqui.</div>
+        </div>
+        <div class="seta" aria-hidden="true">→</div>
+        <div class="caixa caixa--externa">
+          <div class="caixa__papel">Passo 3b · fora de casa</div>
+          <div class="caixa__nome">nationalize.io</div>
+          <div class="caixa__nota">Recebe só o primeiro nome e devolve códigos de país.</div>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      O passo 3b é o único que sai da nossa casa, e é o único que pode falhar por
+      motivo alheio. Por isso ele tem <strong>prazo máximo de resposta</strong>: três
+      segundos para conectar, cinco para responder. Se estourar, a nossa API responde
+      "o fornecedor não respondeu" e segue viva. Sem esse prazo, uma lentidão deles
+      viraria uma lentidão nossa.
+    </p>
+  </div>
+</section>
+
+<!-- ============ A PERGUNTA DO CPF ============ -->
+<section class="secao secao--destaque">
+  <div class="texto">
+    <p class="rotulo">A pergunta certa</p>
+
+    <div class="pergunta">
+      <p class="pergunta__titulo">
+        "Se a pessoa já tem CPF, ela não é brasileira? Por que prever a nacionalidade?"
+      </p>
+    </div>
+
+    <p>
+      Essa pergunta apareceu durante o desenvolvimento e ela está certa em farejar
+      contradição. A resposta tem três camadas, e todas as três importam.
+    </p>
+
+    <h3>1. CPF não é prova de nacionalidade</h3>
+    <p class="guia">
+      CPF é registro na Receita Federal, não certidão de nascimento. Estrangeiro que
+      mora aqui tem CPF. Estrangeiro que nem mora aqui, mas tem imóvel, conta ou
+      investimento no Brasil, também tem. É documento fiscal, não documento de origem.
+      Então não, CPF não garante que a pessoa seja brasileira.
+    </p>
+
+    <h3>2. O serviço externo não devolve nacionalidade — devolve estatística de nome</h3>
+    <p class="guia">
+      Isso é o mais importante. A <code>nationalize.io</code> não consulta registro
+      civil de ninguém. Ela olha um nome e responde <em>em quais países esse nome é
+      mais frequente</em>. Quando ela diz "Yuki → Japão, 46%", está dizendo "esse nome
+      é comum no Japão" — nunca "essa pessoa é japonesa". É palpite estatístico sobre a
+      palavra, não sobre a pessoa.
+    </p>
+
+    <h3>3. Como requisito de negócio, é artificial mesmo — e tudo bem</h3>
+    <p class="guia">
+      Num sistema real, um cadastro que já tem CPF não sairia adivinhando nacionalidade
+      por nome. O requisito existe na prova para testar outra coisa: se o candidato
+      sabe <strong>consumir um serviço de terceiro, tratar a falha dele, e converter o
+      dado que ele devolve</strong>. Esse serviço devolve código (<code>JP</code>), a
+      prova pede nome ("Japão"). É aí que está o exercício de verdade.
+    </p>
+
+    <h3>Onde isso teria uso real</h3>
+    <p class="guia">
+      Sugerir o idioma do atendimento antes do primeiro contato. Segmentar uma base para
+      campanha. Priorizar um tradutor numa fila. Sempre como palpite que ajuda a decidir,
+      nunca como dado cadastral gravado no lugar da informação verdadeira.
+    </p>
+    <p class="guia">
+      E vale dizer em voz alta: inferir origem de pessoa a partir do nome é terreno
+      escorregadio. Usado para personalizar atendimento, ajuda. Usado para negar crédito
+      ou filtrar currículo, vira discriminação — com nome estatístico, mas discriminação.
+      Por isso a resposta da API entrega o palpite <strong>e</strong> a probabilidade
+      junto: quem consome enxerga que aquilo é um chute de 46%, não um fato.
+    </p>
+    <p>
+      Sobre a minha parte na contradição: fui eu que escolhi o CPF como identificador —
+      a prova deixava livre. Escolhi porque é o campo que permite a validação mais rica,
+      e explico isso na seção seguinte. Um número sequencial não teria criado a
+      estranheza, mas também não provaria nada sobre validação de dado.
+    </p>
+  </div>
+</section>
+
+<!-- ============ DECISÕES ============ -->
+<section class="secao">
+  <div class="texto">
+    <p class="rotulo">Escolhas</p>
+    <h2>Por que cada decisão</h2>
+
+    <h3>O identificador é o CPF, não um número sequencial</h3>
+    <p class="guia">
+      A prova deixou livre. Escolhi CPF porque ele me deixa validar de verdade: além do
+      formato, o sistema confere os <strong>dígitos verificadores</strong> — aquela conta
+      que revela se o número é possível ou foi inventado. Um <code>111.111.111-11</code>
+      tem o formato perfeito e é recusado. Com um número sequencial, a única validação
+      possível seria "isso é um número?", o que não prova nada.
+    </p>
+
+    <h3>Autenticação em tudo, e um degrau a mais em excluir</h3>
+    <p class="guia">
+      A prova permitia proteger só uma operação. Protegi todas — e coloquei uma exigência
+      extra na exclusão: além do crachá, precisa ser perfil admin. Excluir é a única
+      operação que não tem volta. Nela, saber quem é a pessoa não basta; é preciso saber
+      se ela pode.
+    </p>
+
+    <h3>A tela nunca é a segurança</h3>
+    <p class="guia">
+      O botão apagado da Tela 4 é conveniência visual. A trava real está no servidor:
+      mesmo que alguém edite a página pelo navegador e reative o botão, a API recusa. A
+      regra de ouro é que a tela pode mentir, então quem decide é sempre o servidor. Se o
+      avaliador quiser testar isso, funciona.
+    </p>
+
+    <h3>Todo erro sai pelo mesmo lugar</h3>
+    <p class="guia">
+      Existe um único ponto no código responsável por transformar qualquer problema em
+      resposta. Isso garante que a API sempre responda no mesmo formato — e que ela
+      diferencie os casos em vez de responder "deu erro" para tudo:
+    </p>
+    <div class="rolagem">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Significa</th>
+            <th>Exemplo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="etiqueta etiqueta--erro">400</span></td>
+            <td>o dado enviado está errado</td>
+            <td>CPF com dígito inválido</td>
+          </tr>
+          <tr>
+            <td><span class="etiqueta etiqueta--erro">401</span></td>
+            <td>sem crachá, ou crachá vencido</td>
+            <td>token expirou no meio do uso</td>
+          </tr>
+          <tr>
+            <td><span class="etiqueta etiqueta--erro">403</span></td>
+            <td>tem crachá, mas não pode</td>
+            <td><code>user</code> tentando excluir</td>
+          </tr>
+          <tr>
+            <td><span class="etiqueta etiqueta--atencao">404</span></td>
+            <td>CPF válido, mas ninguém cadastrado com ele</td>
+            <td>consulta de quem não existe</td>
+          </tr>
+          <tr>
+            <td><span class="etiqueta etiqueta--atencao">409</span></td>
+            <td>esse CPF já está cadastrado</td>
+            <td>cadastro repetido</td>
+          </tr>
+          <tr>
+            <td><span class="etiqueta etiqueta--atencao">502</span></td>
+            <td>o serviço externo falhou — não fomos nós</td>
+            <td>nationalize.io fora do ar</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="guia">
+      Essa distinção entre 400, 404 e 502 parece detalhe e não é. Quem consome a API
+      precisa saber se deve corrigir o dado, avisar que não existe, ou tentar de novo
+      mais tarde.
+    </p>
+
+    <h3>Banco em memória</h3>
+    <p class="guia">
+      O banco vive dentro da própria aplicação. Isso significa que quem for avaliar
+      roda o projeto com um comando, sem instalar nem configurar banco nenhum. O preço é
+      que os dados somem quando a aplicação para — aceitável numa prova, e trocar por um
+      banco de verdade mexe em quatro linhas de configuração.
+    </p>
+  </div>
+</section>
+
+<!-- ============ TESTES ============ -->
+<section class="secao secao--destaque">
+  <div class="texto">
+    <p class="rotulo">Verificação</p>
+    <h2>O que foi testado</h2>
+    <p>
+      São <strong>41 testes automatizados</strong> que rodam a cada build. Eles não
+      testam se o código compila — testam se ele se comporta:
+    </p>
+
+    <ul class="leitura">
+      <li><span class="marca">✓</span><span>CPF inventado é recusado; CPF real passa, com ou sem pontuação.</span></li>
+      <li><span class="marca">✓</span><span>Sem crachá, toda rota responde bloqueio.</span></li>
+      <li><span class="marca">✓</span><span>Perfil <code>user</code> não consegue excluir; <code>admin</code> consegue.</span></li>
+      <li><span class="marca">✓</span><span>Cadastro repetido é barrado.</span></li>
+      <li><span class="marca">✓</span><span>Código de país vira nome de país corretamente.</span></li>
+      <li><span class="marca">✓</span><span>Serviço externo fora do ar vira aviso de fornecedor, não erro nosso.</span></li>
+    </ul>
+
+    <p style="margin-top: 2rem;">
+      Nos testes, o serviço externo é substituído por um dublê. Teste que depende de
+      internet não é teste, é loteria — se a <code>nationalize.io</code> cair, o build
+      não pode quebrar por causa disso.
+    </p>
+    <p>
+      Fora os automatizados, rodei a coisa toda à mão: todos os endereços por linha de
+      comando, com chamada real ao serviço externo, e as quatro telas dirigindo o
+      navegador de verdade — entrar, errar a senha, cadastrar, prever, excluir, sair.
+    </p>
+  </div>
+</section>
+
+<!-- ============ PRODUÇÃO ============ -->
+<section class="secao">
+  <div class="texto">
+    <p class="rotulo">Honestidade</p>
+    <h2>O que ficou de fora de propósito</h2>
+    <p>
+      Isto é uma prova, não um sistema em produção. Quatro coisas eu deixei fora
+      conscientemente, e prefiro dizer do que deixar alguém descobrir:
+    </p>
+
+    <ul class="leitura">
+      <li>
+        <span class="marca">1</span>
+        <span><strong>Banco de verdade.</strong> Em produção seria PostgreSQL, com as
+        alterações de estrutura versionadas em arquivo.</span>
+      </li>
+      <li>
+        <span class="marca">2</span>
+        <span><strong>Usuários no banco.</strong> Hoje são dois usuários fixos. Em produção
+        seriam cadastrados, com renovação e revogação de crachá.</span>
+      </li>
+      <li>
+        <span class="marca">3</span>
+        <span><strong>CPF no endereço da requisição.</strong> CPF é dado pessoal e endereço de
+        requisição costuma cair em registro de servidor. Pela LGPD, o certo seria expor um
+        código sem significado para fora e guardar o CPF só por dentro. Mantive porque a
+        prova pede um parâmetro que identifique a pessoa, e é ele que permite a validação
+        mais rica.</span>
+      </li>
+      <li>
+        <span class="marca">4</span>
+        <span><strong>Memória de consulta.</strong> A previsão de um mesmo nome muda pouco. Guardar
+        a resposta por algumas horas cortaria a maioria das idas ao serviço externo.</span>
+      </li>
+    </ul>
+
+    <h3>Duas observações sobre o próprio enunciado</h3>
+    <p class="guia">
+      A prova diz "para os dois pontos a seguir" e lista <strong>um</strong> endereço só.
+      Implementei o que está escrito e registrei a inconsistência, em vez de inventar um
+      sexto endereço para preencher.
+    </p>
+    <p class="guia">
+      Os nomes das rotas misturam português e inglês, e <code>/registrarName</code>
+      cadastra uma pessoa inteira, não só o nome. Mantive exatamente como estava escrito.
+      Num projeto meu eu proporia outro nome — mas requisito escrito não se reescreve por
+      gosto pessoal.
+    </p>
+  </div>
+</section>
+
+<footer class="rodape">
+  <div class="texto">
+    <p><strong>Para rodar o projeto</strong> — precisa apenas do Java 21 instalado.</p>
+    <div class="comando">.\mvnw.cmd spring-boot:run</div>
+    <p>
+      Depois disso: a tela em <code>localhost:8080</code>, esta explicação em
+      <code>/explicacao</code>, a documentação técnica da API em
+      <code>/swagger-ui.html</code>, e o banco em <code>/h2-console</code>.
+    </p>
+    <p>
+      <strong>As credenciais de acesso vão junto com a entrega</strong>, no arquivo de
+      instruções do projeto. Não estão impressas em nenhuma tela — nem nesta página.
+    </p>
+    <p style="margin-top: 2rem;">
+      <a href="/">&larr; Voltar para a aplicaÃ§Ã£o</a>
+    </p>
+    <p style="margin-top: 2rem; color: var(--tinta-fraca);">
+      Luan Santos · desenvolvimento de sistemas, automações e integrações
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
