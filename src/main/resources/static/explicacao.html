@@ -460,7 +460,7 @@
       </div>
       <div>
         <dt>Testes</dt>
-        <dd>41 automatizados</dd>
+        <dd>48 automatizados</dd>
       </div>
     </dl>
   </div>
@@ -559,7 +559,8 @@
         <thead>
           <tr>
             <th>Operação</th>
-            <th>Endereço</th>
+            <th>Endereço do enunciado</th>
+            <th>Equivalente REST</th>
             <th>Precisa de crachá?</th>
             <th>O que é conferido</th>
           </tr>
@@ -568,41 +569,70 @@
           <tr>
             <td>Entrar no sistema</td>
             <td><code>POST /auth/login</code></td>
+            <td>&mdash;</td>
             <td><span class="etiqueta etiqueta--ok">aberto</span></td>
             <td>usuário e senha preenchidos</td>
           </tr>
           <tr>
             <td>Cadastrar pessoa</td>
             <td><code>POST /registrarName</code></td>
+            <td><code>POST /pessoas</code></td>
             <td><span class="etiqueta etiqueta--atencao">crachá</span></td>
             <td>CPF de verdade, nome e sobrenome só com letras, e-mail em formato válido, nada em branco</td>
           </tr>
           <tr>
             <td>Listar pessoas</td>
             <td><code>GET /list</code></td>
+            <td><code>GET /pessoas</code></td>
             <td><span class="etiqueta etiqueta--atencao">crachá</span></td>
             <td>filtro de busca com no mínimo 2 letras</td>
           </tr>
           <tr>
             <td>Consultar uma pessoa</td>
             <td><code>GET /list/{cpf}</code></td>
+            <td><code>GET /pessoas/{cpf}</code></td>
             <td><span class="etiqueta etiqueta--atencao">crachá</span></td>
             <td>CPF conferido antes de consultar o banco</td>
           </tr>
           <tr>
             <td>Excluir uma pessoa</td>
             <td><code>DELETE /list/{cpf}</code></td>
+            <td><code>DELETE /pessoas/{cpf}</code></td>
             <td><span class="etiqueta etiqueta--erro">crachá de admin</span></td>
             <td>mesma conferência de CPF, e só o perfil admin passa</td>
           </tr>
           <tr>
             <td>Prever nacionalidade</td>
             <td><code>GET /findNacionalityByPerson/{cpf}</code></td>
+            <td><code>GET /pessoas/{cpf}/nacionalidade</code></td>
             <td><span class="etiqueta etiqueta--atencao">crachá</span></td>
             <td>CPF conferido, e o nome conferido antes de sair para o serviço externo</td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="texto" style="margin-left: 0;">
+      <h3>Por que cada operação tem dois endereços</h3>
+      <p class="guia">
+        A coluna do meio é o que a prova pediu, letra por letra. Requisito escrito não
+        se reescreve por gosto, então essas rotas continuam valendo e são as que a
+        interface usa.
+      </p>
+      <p class="guia">
+        A coluna da direita é como a mesma operação se chamaria numa API pública.
+        <code>registrarName</code> cadastra uma pessoa inteira, não só o nome, e
+        <code>list</code> no singular não lista nada — identifica um registro. Nenhum
+        dos dois nomes descreve o que a rota faz, e quem for consumir a API depois
+        tropeça nisso.
+      </p>
+      <p class="guia">
+        Não existe código duplicado: é o mesmo método atendendo por dois caminhos.
+        O detalhe que importa é que a exigência de perfil admin na exclusão cobre
+        <strong>os dois endereços</strong> — se cobrisse só o do enunciado, a rota nova
+        seria uma porta dos fundos para apagar gente sem permissão. Tem teste
+        automatizado só para provar que essa porta está fechada.
+      </p>
     </div>
   </div>
 </section>
@@ -940,7 +970,7 @@
     <p class="rotulo">Verificação</p>
     <h2>O que foi testado</h2>
     <p>
-      São <strong>41 testes automatizados</strong> que rodam a cada build. Eles não
+      São <strong>48 testes automatizados</strong> que rodam a cada build. Eles não
       testam se o código compila — testam se ele se comporta:
     </p>
 

@@ -62,7 +62,9 @@ public class SecurityConfig {
                                 "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/h2-console/**")
                         .permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/list/**").hasRole("ADMIN")
+                        // Os dois enderecos levam ao mesmo metodo: a exigencia de ADMIN
+                        // precisa cobrir os dois, senao a rota REST vira porta dos fundos.
+                        .requestMatchers(HttpMethod.DELETE, "/list/**", "/pessoas/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> escrever(res,

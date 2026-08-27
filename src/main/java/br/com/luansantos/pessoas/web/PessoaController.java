@@ -28,15 +28,21 @@ import java.net.URI;
 import java.util.List;
 
 /**
- * Rotas do enunciado da prova.
+ * Rotas do enunciado da prova, mais os equivalentes REST.
  *
  * O parametro identificador escolhido e o DOCUMENTO (CPF). Motivo: e chave
  * natural e unica da pessoa e permite uma validacao de tipo de dado de verdade
  * -- formato e digito verificador -- em vez de apenas checar se um id e numero.
  *
- * Os nomes das rotas (/registrarName, /list) foram mantidos exatamente como no
- * enunciado. Em projeto proprio eu usaria /pessoas no plural, mas requisito
- * escrito nao se reescreve por gosto.
+ * Sobre os dois enderecos por operacao: os nomes do enunciado
+ * (/registrarName, /list) sao requisito escrito e continuam valendo exatamente
+ * como pedidos. Ao lado deles exponho o desenho REST convencional
+ * (/pessoas, /pessoas/{cpf}, /pessoas/{cpf}/nacionalidade), porque
+ * "registrarName" cadastra uma pessoa inteira e "list" no singular identifica
+ * um recurso -- nenhum dos dois descreve o que a rota faz.
+ *
+ * Nao ha duplicacao de logica: e o mesmo metodo atendendo por dois caminhos.
+ * O enunciado nao e reescrito, e a API fica legivel para quem chegar depois.
  */
 @RestController
 @Validated
@@ -51,7 +57,7 @@ public class PessoaController {
         this.nacionalidadeService = nacionalidadeService;
     }
 
-    @PostMapping("/registrarName")
+    @PostMapping({"/registrarName", "/pessoas"})
     @Operation(summary = "Registra uma pessoa",
             description = "Valida CPF (formato + digito verificador), nome e sobrenome apenas com "
                     + "letras, e-mail em formato valido e nenhum campo nulo ou em branco.")
@@ -72,7 +78,7 @@ public class PessoaController {
         return ResponseEntity.created(local).body(pessoa);
     }
 
-    @GetMapping("/list")
+    @GetMapping({"/list", "/pessoas"})
     @Operation(summary = "Lista as pessoas registradas",
             description = "Aceita o filtro opcional 'nome', validado com no minimo 2 caracteres "
                     + "para nao varrer a base inteira com uma letra solta.")
@@ -85,7 +91,7 @@ public class PessoaController {
         return pessoaService.listar(nome);
     }
 
-    @GetMapping("/list/{documento}")
+    @GetMapping({"/list/{documento}", "/pessoas/{documento}"})
     @Operation(summary = "Consulta uma pessoa pelo documento",
             description = "O CPF do path e validado antes de qualquer acesso ao banco: "
                     + "documento malformado responde 400, documento valido e inexistente responde 404.")
@@ -101,7 +107,7 @@ public class PessoaController {
         return pessoaService.buscarPorDocumento(documento);
     }
 
-    @DeleteMapping("/list/{documento}")
+    @DeleteMapping({"/list/{documento}", "/pessoas/{documento}"})
     @Operation(summary = "Exclui uma pessoa pelo documento",
             description = "Operacao destrutiva: exige token valido E perfil ADMIN. "
                     + "O CPF do path passa pela mesma validacao de formato e digito verificador.")
@@ -119,7 +125,7 @@ public class PessoaController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/findNacionalityByPerson/{documento}")
+    @GetMapping({"/findNacionalityByPerson/{documento}", "/pessoas/{documento}/nacionalidade"})
     @Operation(summary = "Preve a nacionalidade da pessoa",
             description = "Consulta a api.nationalize.io pelo nome da pessoa e converte o codigo "
                     + "ISO 3166-1 alfa-2 devolvido pela API no NOME da nacionalidade.")

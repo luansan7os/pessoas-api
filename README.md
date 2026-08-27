@@ -56,6 +56,26 @@ os valores acima são apenas o padrão para o projeto subir com um comando.
 
 ---
 
+## Deploy
+
+O repositório tem um `render.yaml`. No [Render](https://render.com), em
+**New → Blueprint**, apontando para este repositório, o serviço sobe sozinho a
+partir do `Dockerfile` — sem preencher formulário.
+
+O segredo do JWT é gerado pelo próprio Render (`generateValue`) e nunca fica
+versionado. As senhas dos perfis são definidas no painel, em `APP_ADMIN_SENHA` e
+`APP_USER_SENHA`.
+
+Dois avisos honestos sobre o plano gratuito:
+
+- **Hiberna após 15 minutos sem acesso.** A primeira visita depois disso leva uns
+  50 segundos para responder. Não é lentidão do sistema, é a máquina acordando.
+- **O banco é em memória.** Cada reinício volta para as 4 pessoas da carga
+  inicial. É o esperado nesta prova, e trocar por um Postgres gerenciado mexe em
+  quatro linhas do `application.yml`.
+
+---
+
 ## Stack
 
 | Camada | Escolha | Por quê |
@@ -67,7 +87,7 @@ os valores acima são apenas o padrão para o projeto subir com um comando.
 | Autenticação | Spring Security + JWT (jjwt) | stateless, sem sessão no servidor |
 | HTTP externo | `RestClient` (Spring 6.1) | nativo, sem dependência a mais |
 | Documentação | springdoc-openapi | Swagger UI para testar sem Postman |
-| Testes | JUnit 5, MockMvc, Mockito | 41 testes cobrindo rota, validação, papel e erro |
+| Testes | JUnit 5, MockMvc, Mockito | 48 testes cobrindo rota, validação, papel e erro |
 
 ---
 
@@ -80,14 +100,24 @@ O parâmetro identificador escolhido foi o **documento (CPF)**.
 > **e** dígito verificador — em vez de apenas checar se um número é número.
 > Aceita com ou sem máscara: `529.982.247-25` e `52998224725` são a mesma pessoa.
 
-| Método | Rota | Autenticação | Validação de tipo de dado |
-|---|---|---|---|
-| `POST` | `/auth/login` | pública | usuário e senha obrigatórios |
-| `POST` | `/registrarName` | token | CPF com DV, nome/sobrenome só com letras, e-mail em formato válido, nada nulo ou em branco |
-| `GET` | `/list` | token | filtro opcional `nome` com mínimo de 2 caracteres |
-| `GET` | `/list/{documento}` | token | CPF do path validado antes de tocar no banco |
-| `DELETE` | `/list/{documento}` | token + **perfil ADMIN** | mesma validação de CPF do path |
-| `GET` | `/findNacionalityByPerson/{documento}` | token | CPF do path + nome validado antes da chamada externa |
+| Método | Rota do enunciado | Equivalente REST | Autenticação | Validação de tipo de dado |
+|---|---|---|---|---|
+| `POST` | `/auth/login` | — | pública | usuário e senha obrigatórios |
+| `POST` | `/registrarName` | `/pessoas` | token | CPF com DV, nome/sobrenome só com letras, e-mail em formato válido, nada nulo ou em branco |
+| `GET` | `/list` | `/pessoas` | token | filtro opcional `nome` com mínimo de 2 caracteres |
+| `GET` | `/list/{documento}` | `/pessoas/{documento}` | token | CPF do path validado antes de tocar no banco |
+| `DELETE` | `/list/{documento}` | `/pessoas/{documento}` | token + **perfil ADMIN** | mesma validação de CPF do path |
+| `GET` | `/findNacionalityByPerson/{documento}` | `/pessoas/{documento}/nacionalidade` | token | CPF do path + nome validado antes da chamada externa |
+
+> **Por que dois endereços por operação?** As rotas do enunciado são requisito
+> escrito e continuam valendo exatamente como pedidas — a interface web usa elas.
+> Ao lado, exponho o desenho REST convencional, porque `registrarName` cadastra
+> uma pessoa inteira e `list` no singular identifica um recurso: nenhum dos dois
+> nomes descreve o que a rota faz.
+>
+> Não há duplicação de lógica — é o mesmo método atendendo por dois caminhos. A
+> exigência de perfil ADMIN no `DELETE` cobre os dois, senão a rota REST viraria
+> porta dos fundos. Existe teste automatizado provando isso.
 
 ### Códigos de resposta
 
@@ -219,7 +249,7 @@ mvn test
 |---|---|
 | `CpfValidatorTest` | dígito verificador, máscara, CPFs de dígito repetido, nulo |
 | `NacionalidadeServiceTest` | conversão ISO → nome, código inexistente, código ausente |
-| `PessoaApiIntegrationTest` | as 5 rotas de ponta a ponta: 401 sem token, 403 por perfil, 400 de validação, 404, 409, 502 e a conversão do ISO |
+| `PessoaApiIntegrationTest` | as 5 rotas de ponta a ponta, nos dois endereços: 401 sem token, 403 por perfil, 400 de validação, 404, 409, 502 e a conversão do ISO |
 
 A API externa é substituída por um dublê nos testes. Teste que depende de
 internet não é teste, é loteria.

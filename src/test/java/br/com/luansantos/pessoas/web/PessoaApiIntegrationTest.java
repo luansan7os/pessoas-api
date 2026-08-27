@@ -272,6 +272,85 @@ class PessoaApiIntegrationTest {
                 .andExpect(jsonPath("$.fornecedor").value("api.nationalize.io"));
     }
 
+    /* ---------------- rotas REST equivalentes ---------------- */
+
+    @Test
+    @DisplayName("GET /pessoas lista igual a GET /list")
+    void rotaRestLista() throws Exception {
+        mockMvc.perform(get("/pessoas")
+                        .header("Authorization", "Bearer " + tokenDe("user", "user123")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].documento").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("GET /pessoas/{documento} consulta igual a GET /list/{documento}")
+    void rotaRestBusca() throws Exception {
+        mockMvc.perform(get("/pessoas/{documento}", CPF_SEMEADO)
+                        .header("Authorization", "Bearer " + tokenDe("user", "user123")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Nathaniel"));
+    }
+
+    @Test
+    @DisplayName("POST /pessoas registra igual a POST /registrarName")
+    void rotaRestRegistra() throws Exception {
+        mockMvc.perform(post("/pessoas")
+                        .header("Authorization", "Bearer " + tokenDe("admin", "admin123"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of(
+                                "documento", CPF_LIVRE,
+                                "nome", "Akira",
+                                "sobrenome", "Yamamoto",
+                                "email", "akira@exemplo.com.br"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.documento").value(CPF_LIVRE));
+    }
+
+    @Test
+    @DisplayName("GET /pessoas/{documento}/nacionalidade preve igual a rota do enunciado")
+    void rotaRestNacionalidade() throws Exception {
+        given(nationalizeClient.preverPor(anyString())).willReturn(
+                new NationalizeResponse("Nathaniel", 1200, List.of(
+                        new NationalizeResponse.Pais("US", 0.42))));
+
+        mockMvc.perform(get("/pessoas/{documento}/nacionalidade", CPF_SEMEADO)
+                        .header("Authorization", "Bearer " + tokenDe("user", "user123")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nacionalidade").value("Estados Unidos"));
+    }
+
+    @Test
+    @DisplayName("a rota REST de exclusao tambem exige ADMIN: perfil USER leva 403")
+    void rotaRestExclusaoTambemExigeAdmin() throws Exception {
+        mockMvc.perform(delete("/pessoas/{documento}", CPF_SEMEADO)
+                        .header("Authorization", "Bearer " + tokenDe("user", "user123")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.title").value("Acesso negado"));
+    }
+
+    @Test
+    @DisplayName("DELETE /pessoas/{documento} exclui quando o perfil e ADMIN")
+    void rotaRestExclusaoComAdmin() throws Exception {
+        String token = tokenDe("admin", "admin123");
+
+        mockMvc.perform(delete("/pessoas/{documento}", CPF_SEMEADO)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/pessoas/{documento}", CPF_SEMEADO)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("as rotas REST tambem exigem token")
+    void rotaRestExigeToken() throws Exception {
+        mockMvc.perform(get("/pessoas"))
+                .andExpect(status().isUnauthorized());
+    }
+
     /* ---------------- apoio ---------------- */
 
     private String tokenDe(String usuario, String senha) throws Exception {

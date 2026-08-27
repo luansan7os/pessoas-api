@@ -30,7 +30,9 @@ spring:
       path: /h2-console
 
 server:
-  port: 8080
+  # A hospedagem (Render, Railway, Cloud Run) injeta a porta em PORT e espera
+  # que a aplicacao escute nela. Local, sem PORT definida, cai nos 8080 de sempre.
+  port: ${PORT:8080}
   error:
     include-message: never   # o formato de erro quem define e o GlobalExceptionHandler
 

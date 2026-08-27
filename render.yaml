@@ -1,0 +1,29 @@
+# Blueprint do Render. Com este arquivo no repositorio, o Render monta o
+# servico sozinho a partir do Dockerfile -- sem preencher formulario.
+#
+# O plano gratuito hiberna depois de 15 minutos sem acesso: a primeira visita
+# depois disso leva cerca de 50 segundos para responder. Isso esta avisado no
+# README para ninguem achar que o sistema caiu.
+
+services:
+  - type: web
+    name: pessoas-api
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /
+    autoDeploy: true
+
+    envVars:
+      # Segredo de assinatura do token, gerado pelo Render (256 bits) e nunca
+      # versionado. Sem esta variavel, vale o padrao do application.yml -- que
+      # serve para rodar local, nao para ficar exposto na internet.
+      - key: APP_JWT_SECRET
+        generateValue: true
+
+      # Senhas dos dois perfis. Definidas no painel do Render, nao aqui.
+      # Se ficarem em branco, valem os padroes de desenvolvimento.
+      - key: APP_ADMIN_SENHA
+        sync: false
+      - key: APP_USER_SENHA
+        sync: false
