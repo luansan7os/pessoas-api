@@ -5,6 +5,12 @@ prever a nacionalidade a partir do nome, consumindo a API pública
 [nationalize.io](https://api.nationalize.io). Inclui autenticação por JWT e uma
 interface web para consumir tudo pelo navegador.
 
+**No ar:** [https://pessoas-api-v2h5.onrender.com](https://pessoas-api-v2h5.onrender.com) · [explicação do projeto](https://pessoas-api-v2h5.onrender.com/explicacao) · [Swagger](https://pessoas-api-v2h5.onrender.com/swagger-ui.html)
+
+> Hospedado no plano gratuito do Render, que hiberna após 15 minutos sem acesso.
+> Se a primeira visita demorar uns 50 segundos, é a máquina acordando — não é a
+> aplicação travada.
+
 ---
 
 ## Como rodar
